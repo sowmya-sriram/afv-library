@@ -30,12 +30,6 @@ jobs:
           node-version-file: ".nvmrc"
           cache: npm
 
-      - name: Configure Git for private repo access
-        run: |
-          git config --global --add url."https://${{ secrets.IDEE_GH_TOKEN }}@github.com/".insteadOf "https://github.com/"
-          git config --global --add url."https://${{ secrets.IDEE_GH_TOKEN }}@github.com/".insteadOf "git@github.com:"
-          git config --global --add url."https://${{ secrets.IDEE_GH_TOKEN }}@github.com/".insteadOf "ssh://git@github.com/"
-
       - name: Get latest npm version
         id: npm-version
         run: |
