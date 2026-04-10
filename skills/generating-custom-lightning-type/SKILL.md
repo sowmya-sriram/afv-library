@@ -1,6 +1,6 @@
 ---
 name: generating-custom-lightning-type
-description: "Use this skill when users need to create Custom Lightning Types (CLTs) for Einstein Agent actions or structured input/output schemas. Trigger when users mention CLT, Custom Lightning Types, JSON schemas for agents, type definitions, lightning__objectType, or editor/renderer configurations. This is complex - always use this skill for CLT work."
+description: "Use this skill when users need to create Custom Lightning Types (CLTs) for Einstein Agent actions or structured input/output schemas. Trigger when users mention CLT, Custom Lightning Types, CLT with mosaic aka fragment aka widget, JSON schemas for agents, type definitions, lightning__objectType, or editor/renderer configurations. This is complex - always use this skill for CLT work."
 ---
 
 ## When to Use This Skill
@@ -10,6 +10,7 @@ Use this skill when you need to:
 - Generate JSON Schema-based type definitions for Lightning Platform
 - Configure CLTs for Einstein Agent actions
 - Set up editor and renderer configurations for custom UI
+- Create CLTs with mosaic/widget/fragment renditions
 - Troubleshoot deployment errors related to Custom Lightning Types
 
 ## Specification
@@ -23,6 +24,7 @@ Custom Lightning Types (CLTs) are JSON Schema-based type definitions used by the
 - **Choose standard Lightning types** when the structure is simple and can be expressed with properties and supported primitive `lightning:type` identifiers.
 - **Choose Apex class types** (`@apexClassType/...`) when the structure already exists server-side and you want the Apex class to define the shape.
 - **Include editor/renderer config** only when you need custom UI behavior (custom LWC input/output components). Otherwise, omit.
+- **Choose mosaic rendition** only when mosaic/fragment/widget rendition is requested. Refer **Mosaic override pattern** below for guidance.
 
 ## Critical Rules (Read First)
 - **Root object schemas MUST include**:
@@ -98,6 +100,7 @@ When strict validation is enabled (`unevaluatedProperties: false`), keep each pr
    - Add `properties` using valid primitive `lightning:type` identifiers.
    - For nested objects: omit `lightning:type` and keep keywords minimal.
    - For arrays: follow the strict list rules (avoid `items`; avoid `lightning:type` on nested arrays).
+   - **Mosaic rendition**: If the user asks for a CLT with **fragment**, **mosaic**, **widget** rendition, follow the **Mosaic override pattern** after `schema.json` is drafted, using it as the grounding schema for fragment generation.
 3. **(Optional) Draft `editor.json`** (only if custom UI is required)
    - **Supported shape:** Top-level `editor` object with `editor.componentOverrides` and `editor.layout`.
      - Top-level `editor` object.
@@ -119,7 +122,7 @@ When strict validation is enabled (`unevaluatedProperties: false`), keep each pr
    - **Avoid known-invalid patterns**:
      - Do not use `es_property_editors/inputList`.
      - Do not use `itemSchema` attributes.
-4. **(Optional) Draft `renderer.json`** (only if custom UI is required)
+4. **(Optional) Draft `renderer.json`** (only if custom UI or mosaic rendition is required)
    - **Supported shape:** Top-level `renderer` object with `renderer.componentOverrides` and `renderer.layout`.
      - Top-level `renderer` object.
      - Use `renderer.componentOverrides` for component overrides.
@@ -130,6 +133,17 @@ When strict validation is enabled (`unevaluatedProperties: false`), keep each pr
      - Use `{!$attrs.<name>}` in attribute mappings when binding schema data to custom renderer component attributes.
      - **CRITICAL**: Attribute mappings like `{!$attrs.propertyName}` must reference properties that **actually exist** in your type schema. Referencing non-existent properties will fail validation.
      - **Type matching**: Attribute values must match the expected type for the component. For example, if a component expects a string attribute, passing an integer will fail validation.
+   - **Mosaic override pattern** (for inline aka declarative mosaic rendition):
+     - **When to use:** Use this when users request "mosaic", "widget", "fragment", or "cross-platform rendering" for their CLT.
+     - **Structure:** `renderer.componentOverrides["$"] = { "type": "mosaic", "definition": "tile/mosaic", "children": [ /* UEM tree of blocks and regions */ ] }`
+     - **REQUIRED workflow:** You MUST follow the complete step-by-step workflow in [Mosaic Rendition Reference](references/mosaic-rendition.md). This workflow is mandatory and includes:
+       - Use CLT schema as the grounding schema
+       - Schema parsing and property extraction
+       - Calling `discoverUiComponents` metadata action to discover available UEM blocks
+       - Selecting components that represent CLT schema properties
+       - Calling `getUiComponentSchemas` metadata action to get component schemas
+       - Building the UEM tree with proper attribute bindings using `{!$attrs.*}` syntax
+       - Writing output to `renderer.json` in the CLT bundle as per the defined **Structure**.
    - **Property-level override pattern**:
      - `renderer.componentOverrides["<propertyName>"] = { "definition": "es_property_editors/outputText" | "es_property_editors/outputNumber" | "es_property_editors/outputImage" | ... }`. **Valid renderer components** (examples): `es_property_editors/outputText`, `es_property_editors/outputNumber`, `es_property_editors/outputImage`. Avoid input-style components in the renderer.
    - **Layout pattern for renderer**:
@@ -189,3 +203,9 @@ When strict validation is enabled (`unevaluatedProperties: false`), keep each pr
 - [ ] Layout configurations use `lightning/propertyLayout` with ONLY the `property` attribute (no `label`, `title`, or other attributes)
 - [ ] All attribute mappings (`{!$attrs.propertyName}`) reference properties that exist in the type schema
 - [ ] Custom LWC components have correct targets in `-meta.xml`: `lightning__AgentforceInput` for editors, `lightning__AgentforceOutput` for renderers
+
+---
+
+## Reference
+
+- **[mosaic-rendition.md](references/mosaic-rendition.md)** - Complete guidance on creating mosaic renditions for CLTs.
