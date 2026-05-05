@@ -1,6 +1,6 @@
 ---
 name: generating-experience-lwr-site
-description: "Creates, modifies, or manages Salesforce Experience Cloud LWR sites via DigitalExperience metadata. Always trigger when users mention Experience sites, LWR sites, DigitalExperience, Experience Cloud, community sites, portals, creating pages, adding routes, views, theme layouts, branding sets, previewing sites, or any DigitalExperience bundle work. Also use when users mention specific content types like sfdc_cms__route, sfdc_cms__themeLayout, etc. or when troubleshooting site deployment. ALWAYS trigger for ANY guest sharing rule (metadata type sharingGuestRules) creation/modification, guest user access, sharing records to guest users, or when user provides a guest user ID (15 or 18 characters starting with 005)"
+description: "Creates, modifies, or manages Salesforce Experience Cloud LWR sites via DigitalExperience metadata. Always trigger when the tasks involve LWR sites configurations, e.g. creating/modifying pages/routes/views/theme layouts/branding sets, previewing sites, or creating/modifying guest sharing rule (metadata type sharingGuestRules)/guest user access/sharing records to guest users, or when user provides a guest user ID (15 or 18 characters starting with 005). NEVER trigger for React or any other ui bundle framework. LWR sites ONLY."
 ---
 
 # Experience LWR Site Builder
